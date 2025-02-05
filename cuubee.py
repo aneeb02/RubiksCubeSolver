@@ -1,5 +1,5 @@
+import sys
 from collections import deque
-
 
 
 MOVES = ["U", "U'", "D", "D'", "F", "F'", "B", "B'", "L", "L'", "R", "R'"]
@@ -303,7 +303,6 @@ def bfs_solve(initial_cube, goal_cube):
                 queue.append((new_cube, path + [move]))
     return None  # In case no solution is found.
 
-from collections import deque
 
 def bidirectional_bfs_solve(start_cube, goal_cube):
     """
@@ -350,16 +349,14 @@ def bidirectional_bfs_solve(start_cube, goal_cube):
                 if state_tuple not in visited_goal:
                     visited_goal[state_tuple] = path + [move]
                     frontier_goal.append((new_cube, path + [move]))
-                    print(path)
 
     return None  # No solution found
 
 
-if __name__ == '__main__':
-    # Assume the problem file "problem.txt" has two lines:
-    #   Line 1: the scrambled state
-    #   Line 2: the goal (solved) state
-    with open("cube.txt", "r") as f:
+
+if __name__ == "__main__":
+    # Load the problem from "problem.txt"
+    with open("problem.txt", "r") as f:
         lines = f.readlines()
 
     if len(lines) < 2:
@@ -368,25 +365,19 @@ if __name__ == '__main__':
     initial_state_str = lines[0].strip()
     goal_state_str = lines[1].strip()
 
-    # Convert the string representations to internal state dictionaries.
+    # Convert to internal state dictionaries
     initial_state = parse_initial_state(initial_state_str)
     goal_state = parse_initial_state(goal_state_str)
 
-    # Create Cube instances for the initial and goal states.    
+    # Create Cube instances
     initial_cube = Cube(state=initial_state)
     goal_cube = Cube(state=goal_state)
-    
-    test_cube = Cube(state=initial_state.copy())
-    for move in ['B', "R'", "D'"]:
-        test_cube.apply_move(move)
-    print("After moves:", test_cube.get_state_string())
-    print("Goal state:", goal_cube.get_state_string())
 
-    # Run BFS to solve the cube.
-    # solution = bidirectional_bfs_solve(initial_cube, goal_cube)
-    
-    # if solution is not None:
-    #     print("Solution found in {} moves:".format(len(solution)))
-    #     print(solution)
-    # else:
-    #     print("No solution found.")
+    # Solve with Bi-BFS
+    solution = bidirectional_bfs_solve(initial_cube, goal_cube)
+
+    if solution:
+        print("\nSolution found in {} moves:".format(len(solution)))
+        print(solution)
+    else:
+        print("\nNo solution found.")
