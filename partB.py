@@ -226,7 +226,10 @@ def bfs_solve(initial_cube):
 # Simple BFS without pruning
 def bfs(initial_cube):
     """Breadth-First Search to find solution to a Rubik's Cube."""
-    count = 0
+    
+    # Initialize a counter for the number of states processed.
+    num_explored = 0
+    
     initial_state = initial_cube.get_state_tuple()
     goal_state = Cube().get_state_tuple()  # The solved state
 
@@ -236,6 +239,8 @@ def bfs(initial_cube):
 
     while frontier:
         current_cube, path = frontier.popleft()
+        num_explored += 1  # A state is now being expanded.
+
         if current_cube.get_state_tuple() == goal_state:
             return path  # Return solution
 
@@ -247,11 +252,13 @@ def bfs(initial_cube):
                 frontier.append((new_cube, path + [move]))  # Append new move sequence
                 count+=1
                 print(path,count)
-
+                
+                
+    print("Number of states explored:", num_explored)
     return None  # No solution found
   
 #BFS with pruning
-def bfs_solve(initial_cube):
+def bfs_pruning(initial_cube):
     """
     Breadth-First Search with basic pruning.
     Pruning rule: do not perform a move on the same face consecutively.
@@ -262,19 +269,22 @@ def bfs_solve(initial_cube):
     frontier = deque([(initial_cube, [])])  # Each element is (Cube instance, path of moves)
     visited = set()
     visited.add(initial_state)
+    
+    # Initialize a counter for the number of states processed.
+    num_explored = 0
 
     while frontier:
         current_cube, path = frontier.popleft()
+        num_explored += 1  # A state is now being expanded.
         
-        # Check if we have reached the solved state.
+        # Check if we've reached the solved state.
         if current_cube.get_state_tuple() == goal_state:
+            print("Number of states explored:", num_explored)
             return path  # Return the sequence of moves that solved the cube
 
-        # Generate neighbors.
+        # Generate neighbors and apply pruning.
         for next_state, move in current_cube.get_neighbors():
-            # --- Pruning step ---
-            # If the last move in the path was on the same face, skip this neighbor.
-            # This avoids immediately undoing or overcomplicating the previous move.
+            # Pruning: avoid applying a move on the same face consecutively.
             if path and move[0] == path[-1][0]:
                 continue
 
@@ -283,8 +293,9 @@ def bfs_solve(initial_cube):
                 # Create a new cube state by applying the move.
                 new_cube = copy.deepcopy(current_cube)
                 new_cube.move_cube(*move)
-                frontier.append((new_cube, path + [move]))  # Append new move sequence
+                frontier.append((new_cube, path + [move]))
 
+    print("Number of states explored:", num_explored)
     return None  # If no solution is found.
 
   
@@ -376,7 +387,7 @@ if __name__ == '__main__':
     print("Scrambled Cube:")
     print(rubiksCube)
     
-    solution_moves = bfs(rubiksCube)
+    solution_moves = bfs_pruning(rubiksCube)
     
     if solution_moves:
         print("\nSolution found:")
