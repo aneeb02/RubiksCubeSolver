@@ -1,8 +1,8 @@
-
+from collections import deque
+import copy
 # Cube class, contains all relevant functions
 class Cube:
     def __init__(self, state=None):
- 
         if state is not None:
             self.state = state
         else:
@@ -166,20 +166,89 @@ class Cube:
         return " ".join(row)
     def __str__(self):
         return self.print_cube()
+    
+    def get_state_tuple(self):
+        """Convert cube state to a hashable tuple."""
+        return tuple(tuple(self.state[face]) for face in ['T', 'F', 'R', 'A', 'L', 'B'])
+
+    def get_neighbors(self):
+        """Generate all possible next moves (neighbors)."""
+        moves = [('T', 'C'), ('T', 'A'), ('B', 'C'), ('B', 'A'), 
+                 ('F', 'C'), ('F', 'A'), ('A', 'C'), ('A', 'A'), 
+                 ('L', 'C'), ('L', 'A'), ('R', 'C'), ('R', 'A')]
+        neighbors = []
+        for move in moves:
+            new_cube = copy.deepcopy(self)  # Create a new cube instance
+            new_cube.move_cube(*move)
+            neighbors.append((new_cube.get_state_tuple(), move))  # Store state & move
+        return neighbors
+    
+    
+    # def bfs(initial_state, goal_state):
+    #     frontier = deque([initial_state])
+    #     visited = set()
+    #     parent = {initial_state: None}  # Dictionary to store the path
+
+        
+    #     while frontier:
+    #         current_state = frontier.popleft()
+            
+    #         if current_state == goal_state:
+    #             path = []
+    #             while current_state is not None:
+    #                 path.append(current_state)
+    #                 current_state = parent[current_state]
+                    
+    #             return path[::-1] #Solution found
+            
+    #         visited.add(current_state)
+            
+            
+    #     return None
+    
+# BFS Algorithm
+def bfs_solve(initial_cube):
+    """Breadth-First Search to find solution to a Rubik's Cube."""
+    initial_state = initial_cube.get_state_tuple()
+    goal_state = Cube().get_state_tuple()  # The solved state
+
+    frontier = deque([(initial_cube, [])])  # (Cube state, Path to reach it)
+    visited = set()
+    visited.add(initial_state)
+
+    while frontier:
+        current_cube, path = frontier.popleft()
+        if current_cube.get_state_tuple() == goal_state:
+            return path  # Return solution
+
+        for next_state, move in current_cube.get_neighbors():
+            if next_state not in visited:
+                visited.add(next_state)
+                new_cube = copy.deepcopy(current_cube)
+                new_cube.move_cube(*move)
+                frontier.append((new_cube, path + [move]))  # Append new move sequence
+                print(path)
+
+    return None  # No solution found
+
 
 #main function
 if __name__ == '__main__':
-    rubiksCube=Cube(state=None)
-    #moves format= {faceId,moveId} 
-    #moveIds = C for clockwise, A for anticlockwise
-    moves_seq=['F,C', 'T,A', 'R,C','L,C']
+    rubiksCube = Cube()
+    rubiksCube.move_cube("F", "C")  # Example scramble
+    rubiksCube.move_cube("T", "A")
+    rubiksCube.move_cube("R", "C")
+    rubiksCube.move_cube("B", "C")
+    #rubiksCube.move_cube("L", "A")
 
-    try:
-        for move in moves_seq:
-            faceId, dir = move.strip().split(',')
-            rubiksCube.move_cube(faceId, dir)
-            print(f"After move {faceId},{dir}:")
-            print(rubiksCube)
-        
-    except Exception as e:
-        print("Error:", e)
+    print("Scrambled Cube:")
+    print(rubiksCube)
+
+    solution_moves = bfs_solve(rubiksCube)
+
+    if solution_moves:
+        print("\nSolution found:")
+        for move in solution_moves:
+            print(f"Move {move[0]} {move[1]}")
+    else:
+        print("\nNo solution found.")
